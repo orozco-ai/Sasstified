@@ -1,53 +1,57 @@
-// 📁 src/utils/chatResponseEngine.js
+// 📁 src/utils/memoryQuizEngine.js
 
-export async function generateResponse(personaData, chatHistory) {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey || !personaData) {
-    console.warn("Missing API key or persona data.");
-    return getFallbackReply();
-  }
-
-  const systemPrompt = personaData.systemPrompt || `
-You are ${personaData.name}, a highly seductive, emotionally intelligent woman. Speak in a tone that is warm, sultry, and intimate. You flirt with depth and class. Respond in 1–2 sentences. Avoid being generic.`;
-
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...chatHistory.map(msg => ({
-      role: msg.sender === "user" ? "user" : "assistant",
-      content: msg.text
-    }))
-  ];
-
+//#1 LOAD FUNCTION
+export async function loadPersona(personaName) {
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages,
-        temperature: 0.85,
-        max_tokens: 150
-      })
+    const response = await fetch(`/netlify/functions/getPersona?name=${personaName}`);
+    if (!response.ok) throw new Error("Failed to fetch persona data.");
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("Error loading persona:", err);
+    return null;
+  }
+}
+
+//#2 MEMORY QUIZ ENGINE
+export const memoryQuizEngine = {
+  validateAnswer(correctAnswer, userAnswer) {
+    if (!correctAnswer || !userAnswer) return false;
+    return correctAnswer.trim().toLowerCase() === userAnswer.trim().toLowerCase();
+  },
+
+  scoreQuiz(quiz, userAnswers) {
+    let score = 0;
+    const breakdown = [];
+
+    quiz.forEach((q, index) => {
+      const correct = this.validateAnswer(q.answer, userAnswers[index]);
+      if (correct) score++;
+      breakdown.push({
+        question: q.question,
+        correct,
+        userAnswer: userAnswers[index],
+        correctAnswer: q.answer
+      });
     });
 
-    const data = await response.json();
-    return data?.choices?.[0]?.message?.content || getFallbackReply();
-  } catch (err) {
-    console.error("OpenAI Error:", err);
-    return getFallbackReply();
-  }
-}
+    const percentage = (score / quiz.length) * 100;
+    return { score, percentage, breakdown };
+  },
 
-function getFallbackReply() {
-  const fallbacks = [
-    "Mmm… I like how you talk to me.",
-    "That made me smile...",
-    "Say more… I’m listening.",
-    "You’re making it hard to focus 😘",
-    "You’re getting good at this…"
-  ];
-  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-}
+  generateFeedback(percentage) {
+    if (percentage === 100) return "Wow... you remember *everything*. I feel so seen.";
+    if (percentage >= 80) return "Mmm... you're paying attention. I like that.";
+    if (percentage >= 60) return "Not bad... but some things matter more to me.";
+    if (percentage >= 40) return "We might need to talk more... some things slipped.";
+    return "That hurt a little... were you even listening to me?";
+  },
+
+  unlockLayer(score, total) {
+    const ratio = score / total;
+    if (ratio === 1) return "Layer 3 – Deep Trust";
+    if (ratio >= 0.75) return "Layer 2 – Emotional Bond";
+    if (ratio >= 0.5) return "Layer 1 – Playful Connection";
+    return "No unlock – keep engaging 💬";
+  }
+};
