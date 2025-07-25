@@ -1,53 +1,57 @@
-// 📁 src/utils/chatResponseEngine.js
+// 📁 src/components/ChatWindow.jsx
 
-export async function generateResponse(personaData, chatHistory) {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey || !personaData) {
-    console.warn("Missing API key or persona data.");
-    return getFallbackReply();
-  }
+import React, { useEffect, useState } from "react";
+import ChatBubble from "./ChatBubble";
+import { loadPersona } from "../utils/memoryQuizEngine";
+import { generateResponse } from "../utils/chatResponseEngine";
 
-  const systemPrompt = personaData.systemPrompt || `
-You are ${personaData.name}, a highly seductive, emotionally intelligent woman. Speak in a tone that is warm, sultry, and intimate. You flirt with depth and class. Respond in 1–2 sentences. Avoid being generic.`;
+const ChatWindow = ({ persona }) => {
+  const [input, setInput] = useState("");
+  const [chat, setChat] = useState([]);
+  const [personaData, setPersonaData] = useState(null);
 
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...chatHistory.map(msg => ({
-      role: msg.sender === "user" ? "user" : "assistant",
-      content: msg.text
-    }))
-  ];
+  // Load persona on change
+  useEffect(() => {
+    const fetchPersona = async () => {
+      const data = await loadPersona(persona);
+      setPersonaData(data);
+      setChat([{ sender: "bot", text: data.intro || `Hi... I’m ${data.name}. You can say anything to me.` }]);
+    };
+    fetchPersona();
+  }, [persona]);
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages,
-        temperature: 0.85,
-        max_tokens: 150
-      })
-    });
+  // Handle user message and AI response
+  const handleSend = async () => {
+    if (!input.trim()) return;
 
-    const data = await response.json();
-    return data?.choices?.[0]?.message?.content || getFallbackReply();
-  } catch (err) {
-    console.error("OpenAI Error:", err);
-    return getFallbackReply();
-  }
-}
+    const userMessage = { sender: "user", text: input };
+    const updatedChat = [...chat, userMessage];
+    setChat(updatedChat);
+    setInput("");
 
-function getFallbackReply() {
-  const fallbacks = [
-    "Mmm… I like how you talk to me.",
-    "That made me smile...",
-    "Say more… I’m listening.",
-    "You’re making it hard to focus 😘",
-    "You’re getting good at this…"
-  ];
-  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-}
+    const botReply = await generateResponse(personaData, updatedChat);
+    setChat([...updatedChat, { sender: "bot", text: botReply }]);
+  };
+
+  return (
+    <div className="chat-box">
+      <div className="chat-log">
+        {chat.map((msg, index) => (
+          <ChatBubble key={index} sender={msg.sender} text={msg.text} />
+        ))}
+      </div>
+      <div className="chat-input">
+        <input
+          type="text"
+          placeholder="Type something..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        />
+        <button onClick={handleSend}>Send</button>
+      </div>
+    </div>
+  );
+};
+
+export default ChatWindow;
