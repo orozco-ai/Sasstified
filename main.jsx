@@ -1,7 +1,7 @@
 // #1 IMPORTS
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './components/App';     // ✅ FIXED: No "/src" here
+import App from './components/app';     // ✅ FIXED: No "/src" here
 import './index.css';                   // ✅ Global styles from src
 
 // #2 RENDER MAIN APP INTO ROOT
