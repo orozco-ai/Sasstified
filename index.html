@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Flirt Persona Test UI</title>
-    <script type="module" crossorigin src="/src/main.jsx"></script>
     <link rel="stylesheet" href="/styles/style.css" />
   </head>
 
@@ -32,30 +31,11 @@
         </select>
       </div>
 
-      <!-- Quiz Container -->
-      <div id="quiz-container"></div>
+      <!-- React app renders here -->
+      <div id="root"></div>
     </main>
 
-    <script type="module">
-      import React from "react";
-      import { createRoot } from "react-dom/client";
-      import MemoryQuizRunner from "../components/MemoryQuizRunner.js";
-
-      const container = document.getElementById("quiz-container");
-      const select = document.getElementById("persona-select");
-
-      let root;
-
-      select.addEventListener("change", () => {
-        const selectedPersona = select.value;
-        if (!selectedPersona) return;
-
-        if (!root) {
-          root = createRoot(container);
-        }
-
-        root.render(<MemoryQuizRunner selectedPersona={selectedPersona} />);
-      });
-    </script>
+    <!-- Load React app (Vite entry point) -->
+    <script type="module" src="/main.jsx"></script>
   </body>
 </html>
