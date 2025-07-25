@@ -1,96 +1,54 @@
-//#1 - React & Hooks
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import ChatBubble from './ChatBubble';
 
-//#2 - ChatBox Component
-const ChatBox = ({ selectedPersona }) => {
-  const [messages, setMessages] = useState([]);
+const ChatWindow = ({ persona }) => {
+  const [messages, setMessages] = useState([
+    { from: 'avatar', text: `Hi... I’m ${persona}. You can say anything to me.` }
+  ]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
 
-  //#3 - Scroll to latest message
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  //#4 - Handle Input Submission
-  const sendMessage = async () => {
+  const handleSend = () => {
     if (!input.trim()) return;
 
-    const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const userMsg = { from: 'user', text: input };
+    const aiResponse = {
+      from: 'avatar',
+      text: generateAIResponse(input) // Placeholder
+    };
+
+    setMessages([...messages, userMsg, aiResponse]);
     setInput('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          persona: selectedPersona,
-          messages: [...messages, userMessage],
-        }),
-      });
-
-      const data = await response.json();
-      if (data && data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
-      }
-    } catch (error) {
-      console.error('Chat error:', error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
-  //#5 - Handle Enter Key
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+  const generateAIResponse = (input) => {
+    const flirtyReplies = [
+      "Mmm... I like how you talk to me.",
+      "That made me smile...",
+      "You always say the right things.",
+      "I was hoping you'd say that.",
+    ];
+    const random = flirtyReplies[Math.floor(Math.random() * flirtyReplies.length)];
+    return random;
   };
 
-  //#6 - JSX Output
   return (
-    <div className="flex flex-col h-full bg-white shadow-md rounded-lg p-4 overflow-hidden">
-      <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+    <>
+      <div className="chat-window">
         {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`p-3 rounded-lg max-w-[75%] ${
-              msg.role === 'user'
-                ? 'ml-auto bg-blue-100 text-right'
-                : 'mr-auto bg-gray-100 text-left'
-            }`}
-          >
-            {msg.content}
-          </div>
+          <ChatBubble key={idx} from={msg.from} text={msg.text} />
         ))}
-        <div ref={messagesEndRef} />
       </div>
-
-      <div className="flex items-center border-t pt-2">
-        <textarea
+      <div className="chat-input">
+        <input
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyPress}
-          rows={1}
-          placeholder="Say something sexy, smart, or both..."
-          className="flex-1 p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+          placeholder="Type something..."
         />
-        <button
-          onClick={sendMessage}
-          disabled={isLoading}
-          className="ml-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition"
-        >
-          {isLoading ? '...' : 'Send'}
-        </button>
+        <button onClick={handleSend}>Send</button>
       </div>
-    </div>
+    </>
   );
 };
 
-export default ChatBox;
+export default ChatWindow;
