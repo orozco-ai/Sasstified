@@ -1,5 +1,19 @@
-//# Memory Quiz Engine
+// 📁 src/utils/memoryQuizEngine.js
 
+//#1 LOAD FUNCTION
+export async function loadPersona(personaName) {
+  try {
+    const response = await fetch(`/netlify/functions/getPersona?name=${personaName}`);
+    if (!response.ok) throw new Error("Failed to fetch persona data.");
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("Error loading persona:", err);
+    return null;
+  }
+}
+
+//#2 MEMORY QUIZ ENGINE
 export const memoryQuizEngine = {
   validateAnswer(correctAnswer, userAnswer) {
     if (!correctAnswer || !userAnswer) return false;
@@ -13,7 +27,12 @@ export const memoryQuizEngine = {
     quiz.forEach((q, index) => {
       const correct = this.validateAnswer(q.answer, userAnswers[index]);
       if (correct) score++;
-      breakdown.push({ question: q.question, correct, userAnswer: userAnswers[index], correctAnswer: q.answer });
+      breakdown.push({
+        question: q.question,
+        correct,
+        userAnswer: userAnswers[index],
+        correctAnswer: q.answer
+      });
     });
 
     const percentage = (score / quiz.length) * 100;
@@ -36,4 +55,3 @@ export const memoryQuizEngine = {
     return "No unlock – keep engaging 💬";
   }
 };
-
