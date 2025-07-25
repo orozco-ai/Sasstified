@@ -1,19 +1,13 @@
 import React from 'react';
 
-const MessageBubble = ({ role, content }) => {
-  const isUser = role === 'user';
-
+const ChatBubble = ({ from, text }) => {
   return (
     <div
-      className={`w-fit max-w-[80%] p-3 rounded-lg shadow-md text-sm md:text-base break-words ${
-        isUser
-          ? 'ml-auto bg-purple-100 text-right'
-          : 'mr-auto bg-gray-100 text-left'
-      }`}
+      className={`chat-bubble ${from === 'user' ? 'from-user' : 'from-avatar'}`}
     >
-      {content}
+      {text}
     </div>
   );
 };
 
-export default MessageBubble;
+export default ChatBubble;
