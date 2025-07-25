@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import ChatWindow from './components/ChatWindow';
+import ChatWindow from './ChatWindow';  // ✅ FIXED
 
 const App = () => {
-  const [selectedPersona] = useState('Leila');
+  const [selectedPersona] = useState('leila');
 
   return (
     <div className="chat-container">
