@@ -1,28 +1,43 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./src/pages/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}", 
+    "./components/**/*.{js,ts,jsx,tsx}", 
+    "./public/**/*.{html,js}"
   ],
   theme: {
     extend: {
       colors: {
-        sasspink: '#f472b6',
-        sassrose: '#fb7185',
-        sassblack: '#111827',
+        brand: {
+          light: "#f4e4ec",
+          DEFAULT: "#e91e63",
+          dark: "#b0003a",
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        sexy: ['"Playfair Display"', 'serif'],
+        display: ["Poppins", "sans-serif"],
+        body: ["Inter", "sans-serif"],
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    // Optional: DaisyUI if you want sassy pre-built components
-    // require('daisyui'),
-  ],
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: [
+      {
+        flirt: {
+          primary: "#e91e63",
+          secondary: "#f4e4ec",
+          accent: "#ff80ab",
+          neutral: "#291334",
+          "base-100": "#ffffff",
+          info: "#3abff8",
+          success: "#36d399",
+          warning: "#fbbd23",
+          error: "#f87272",
+        },
+      },
+    ],
+    darkTheme: "flirt",
+  },
 };
