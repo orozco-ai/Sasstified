@@ -1,7 +1,7 @@
 //#1 IMPORTS
 import React, { useState, useEffect } from 'react';
 import { loadPersona } from '../utils/memoryQuizEngine';
-import { getUnlockedLevel, unlockNextLevel } from '../utils/localStorageUtils';
+import { unlockLevel, isLevelUnlocked } from '../utils/localStorageUtils';
 
 //#2 COMPONENT START
 const MemoryQuizRunner = ({ selectedPersona }) => {
@@ -35,7 +35,7 @@ const MemoryQuizRunner = ({ selectedPersona }) => {
 
       // Unlock next level if enough points
       if (newScore >= 3 && !unlocked) {
-        unlockNextLevel(selectedPersona);
+        unlockLevel(selectedPersona, 1); // You can make this dynamic later
         setUnlocked(true);
       }
     } else {
