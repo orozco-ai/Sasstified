@@ -1,10 +1,10 @@
 //#1 IMPORTS
 import React, { useState, useEffect } from 'react';
 import { loadPersona } from '../utils/memoryQuizEngine';
-import { unlockLevel, isLevelUnlocked } from '../utils/localStorageUtils';
+import { unlockLevel } from '../utils/localStorageUtils';
 
 //#2 COMPONENT START
-const MemoryQuizRunner = ({ selectedPersona }) => {
+const MemoryQuizRunner = ({ selectedPersona, start }) => {
   const [quizData, setQuizData] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
@@ -12,16 +12,23 @@ const MemoryQuizRunner = ({ selectedPersona }) => {
   const [score, setScore] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
 
-  //#3 LOAD QUIZ
+  //#3 LOAD QUIZ (Only when "start" is true)
   useEffect(() => {
+    if (!start) return;
+
     const fetchPersona = async () => {
-      const data = await loadPersona(selectedPersona);
-      if (data && data.memoryQuiz) {
-        setQuizData(data.memoryQuiz);
+      try {
+        const data = await loadPersona(selectedPersona);
+        if (data && data.memoryQuiz) {
+          setQuizData(data.memoryQuiz);
+        }
+      } catch (err) {
+        console.error("Error loading persona:", err);
       }
     };
+
     fetchPersona();
-  }, [selectedPersona]);
+  }, [selectedPersona, start]);
 
   //#4 CHECK ANSWER
   const handleSubmit = () => {
@@ -35,7 +42,7 @@ const MemoryQuizRunner = ({ selectedPersona }) => {
 
       // Unlock next level if enough points
       if (newScore >= 3 && !unlocked) {
-        unlockLevel(selectedPersona, 1); // You can make this dynamic later
+        unlockLevel(selectedPersona, 1);
         setUnlocked(true);
       }
     } else {
@@ -50,6 +57,8 @@ const MemoryQuizRunner = ({ selectedPersona }) => {
   };
 
   //#5 RENDER UI
+  if (!start) return null; // <- Don't show anything unless 'start' is true
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg max-w-lg mx-auto mt-10">
       <h2 className="text-2xl font-bold text-pink-700 mb-4">
