@@ -1,30 +1,36 @@
 // api/getPersonas/index.js
+
 const express = require('express');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 const router = express.Router();
+const personasDir = path.join(__dirname);
 
-const personaFiles = [
-  'claudia.json',
-  'jennifer.json',
-  'kaija.json',
-  'leila.json',
-  'odalys.json'
-];
-
+// GET /api/personas
 router.get('/', (req, res) => {
-  try {
-    const personas = personaFiles.map(file => {
-      const data = fs.readFileSync(path.join(__dirname, file), 'utf-8');
-      return JSON.parse(data);
+  fs.readdir(personasDir, (err, files) => {
+    if (err) {
+      console.error('Error reading personas folder:', err);
+      return res.status(500).json({ error: 'Failed to read personas folder' });
+    }
+
+    const jsonFiles = files.filter((file) => file.endsWith('.json'));
+    const personas = [];
+
+    jsonFiles.forEach((file) => {
+      const filePath = path.join(personasDir, file);
+      const data = fs.readFileSync(filePath, 'utf-8');
+      try {
+        const parsed = JSON.parse(data);
+        personas.push(parsed);
+      } catch (err) {
+        console.warn(`Invalid JSON in ${file}`);
+      }
     });
 
-    res.status(200).json({ personas });
-  } catch (err) {
-    console.error('Error reading persona files:', err);
-    res.status(500).json({ error: 'Failed to load personas' });
-  }
+    res.json(personas);
+  });
 });
 
 module.exports = router;
